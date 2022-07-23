@@ -9,7 +9,7 @@ M.options = {
   height = 0.2,
 }
 
-function M.open_window(set_focus)
+function M.open_window()
   local options = M.options
   local scratch_bufnr = fn.bufnr(options.scratch_name)
 
@@ -26,7 +26,7 @@ function M.open_window(set_focus)
     if scratch_winnr == -1 then
       vim.cmd(options.position .. " " ..  M.get_size() .. " split +buffer" .. scratch_bufnr)
     else
-      if fn.winnr() ~= scratch_winnr and set_focus then
+      if fn.winnr() ~= scratch_winnr then
         vim.cmd(scratch_winnr .. " wincmd w")
       end
     end
@@ -42,7 +42,7 @@ function M.get_size()
 end
 
 function M.open(reset)
-  M.open_window(true)
+  M.open_window()
 
   if reset then
     fn.execute("%d _", "silent")
@@ -66,7 +66,8 @@ function M.toggle_preview()
   if scratch_winnr ~= -1 then
     vim.cmd(scratch_winnr .. " close")
   else
-    M.open_window(false)
+    M.open_window()
+    vim.cmd(fn.bufwinnr(fn.bufnr("#")) .. " wincmd w")
   end
 end
 
