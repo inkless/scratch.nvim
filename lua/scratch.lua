@@ -54,7 +54,7 @@ end
 function M.open_with_insert(reset)
   M.open(reset)
 
-  fn.cmd("startinsert!")
+  vim.cmd("startinsert!")
 end
 
 function M.open_with_selection_pasted()
@@ -64,7 +64,7 @@ end
 function M.toggle_preview()
   local scratch_winnr = fn.bufwinnr("__Scratch__")
   if scratch_winnr ~= -1 then
-    fn.cmd(scratch_winnr .. " close")
+    vim.cmd(scratch_winnr .. " close")
   else
     M.open_window(false)
   end
@@ -73,9 +73,9 @@ end
 function M.setup(opts)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
 
-  create_cmd("ScratchTogglePreview", M.toggle_preview)
-  create_cmd("Scratch", M.open)
-  create_cmd("ScratchInsert", M.open_with_insert)
+  create_cmd("ScratchTogglePreview", M.toggle_preview, {})
+  create_cmd("Scratch", M.open, {})
+  create_cmd("ScratchInsert", M.open_with_insert, {})
 end
 
 return M
