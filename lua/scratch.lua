@@ -74,8 +74,10 @@ function M.setup(opts)
   M.options = vim.tbl_deep_extend("force", M.options, opts)
 
   create_cmd("ScratchTogglePreview", M.toggle_preview, {})
-  create_cmd("Scratch", M.open, {})
-  create_cmd("ScratchInsert", M.open_with_insert, {})
+  create_cmd("Scratch", function () M.open() end, {})
+  create_cmd("ScratchReset", function () M.open(true) end, {})
+  create_cmd("ScratchInsert", function () M.open_with_insert(false) end, {})
+  create_cmd("ScratchInsertReset", function () M.open_with_insert(true) end, {})
 end
 
 return M
