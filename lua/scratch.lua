@@ -1,6 +1,25 @@
 local fn = vim.fn
 local create_cmd = vim.api.nvim_create_user_command
 
+local filetype_settings = {
+  javascript = {
+    suffix = "js",
+    runner = "node",
+  },
+  typescript = {
+    suffix = "ts",
+    runner = "ts-node",
+  },
+  python = {
+    suffix = "py",
+    runner = "python3",
+  },
+  lua = {
+    suffix = "lua",
+    runner = "lua",
+  },
+}
+
 local M = {}
 
 M.options = {
@@ -19,6 +38,8 @@ function M.open_window()
     vim.bo.bufhidden = "hide"
     vim.bo.buflisted = false
     vim.bo.buftype = "nofile"
+    vim.wo.winfixheight = true
+    vim.wo.winfixwidth = true
 
     -- activate autocmds
   else
@@ -62,7 +83,7 @@ function M.open_with_selection_pasted()
 end
 
 function M.toggle_preview()
-  local scratch_winnr = fn.bufwinnr("__Scratch__")
+  local scratch_winnr = fn.bufwinnr(M.options.scratch_name)
   if scratch_winnr ~= -1 then
     vim.cmd(scratch_winnr .. " close")
   else
@@ -71,7 +92,45 @@ function M.toggle_preview()
   end
 end
 
+function M.eval_buffer()
+  local scratch_name = M.options.scratch_name
+  local scratch_winid = fn.bufwinid(scratch_name)
+  local scratch_bufnr = fn.bufnr(scratch_name)
+  if scratch_winid == -1 then
+    vim.notify("No open buffer", "error", { title = "scratch.nvim"} )
+    return
+  end
+
+  local filetype = vim.api.nvim_buf_get_option(scratch_bufnr, "filetype")
+  local filetype_setting = filetype_settings[filetype]
+  local suffix = filetype_setting and filetype_setting.suffix
+
+  if not suffix then
+    vim.notify("No filetype specified", "error", { title = "scratch.nvim"} )
+    return
+  end
+
+  local filename = M.get_cache_dir() .. "/" .. os.time() .. "." .. suffix
+  print("filename " .. filename)
+  fn.win_execute(scratch_winid, ":silent w! " .. filename)
+
+  fn.VimuxRunCommand("clear; " .. filetype_setting.runner .. " " .. filename)
+end
+
+function M.get_cache_dir()
+  return fn.stdpath("cache") .. "/scratch"
+end
+
+function M.setup_cache_dir()
+  local dir = M.get_cache_dir()
+  if fn.isdirectory(dir) == 0 then
+    fn.mkdir(dir, "p")
+  end
+end
+
 function M.setup(opts)
+  M.setup_cache_dir()
+
   M.options = vim.tbl_deep_extend("force", M.options, opts)
 
   create_cmd("ScratchTogglePreview", M.toggle_preview, {})
@@ -79,6 +138,7 @@ function M.setup(opts)
   create_cmd("ScratchReset", function () M.open(true) end, {})
   create_cmd("ScratchInsert", function () M.open_with_insert(false) end, {})
   create_cmd("ScratchInsertReset", function () M.open_with_insert(true) end, {})
+  create_cmd("ScratchEval", function () M.eval_buffer() end, {})
 end
 
 return M
