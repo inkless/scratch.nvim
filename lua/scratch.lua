@@ -40,8 +40,6 @@ function M.open_window()
     vim.bo.buftype = "nofile"
     vim.wo.winfixheight = true
     vim.wo.winfixwidth = true
-
-    -- activate autocmds
   else
     local scratch_winnr = fn.bufwinnr(scratch_bufnr)
     if scratch_winnr == -1 then
